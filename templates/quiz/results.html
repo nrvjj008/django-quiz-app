@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Results
+{% endblock %}
+
+{% block content %}
+    <h1>Quiz Results</h1>
+    {% if results %}
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Statistics</h5>
+                {% if results %}
+                    <p>Average score: {{ average_score}} %</p>
+                    <p>Highest score: {{ highest_score }} %</p>
+                    <p>Lowest score: {{ lowest_score }} %</p>
+                {% endif %}
+            </div>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Category</th>
+                    <th scope="col">Score</th>
+                    <th scope="col">Date Taken</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in results %}
+                    <tr>
+                        <td>{{ result.quiz_category.category_name }}</td>
+                        <td>{{ result.score }}%</td>
+                        <td>{{ result.date_taken|date:'Y-m-d' }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+        <p>No results found.</p>
+    {% endif %}
+{% endblock %}

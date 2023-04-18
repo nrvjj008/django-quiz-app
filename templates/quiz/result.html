@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="d-flex justify-content-center align-content-center h-100">
+    <div class="text-center card p-4 w-75">
+    <h1>Result</h1>
+
+
+<p>Quiz: {{ quiz_result.quiz_category }}</p>
+<p>Score: {{quiz_result.score }}%</p>
+    {% if quiz_result.score < 50 %}
+        <p class="font-weight-bold text-danger">Please try again!</p>
+        <div>
+        <a href="{% url 'quiz:start_quiz' category_id %}" class="btn-primary rounded p-2">Retake Quiz</a>
+        </div>
+    {% elif quiz_result.score <= 60 %}
+        <p class="font-weight-bold text-success">Good job!</p>
+    {% elif quiz_result.score <= 80 %}
+        <p class="font-weight-bold text-success">Excellent work!</p>
+    {% else %}
+        <p class="font-weight-bold text-success">You are a genius!</p>
+    {% endif %}
+    </div>
+    </div>
+
+
+{#<a href="{% url 'quiz:start_quiz' quiz_result.quiz_category.id %}">Take Another Quiz</a>#}
+
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="text-center">
+
+    <h1>Select a Quiz</h1>
+    {% if quiz_categories %}
+        <div class="d-flex justify-content-center mt-4">
+        <table>
+            <tbody>
+                {% for quiz in quiz_categories %}
+                    <tr>
+                        <td class="font-weight-bold text-left">{{ quiz.category_name }}</td>
+                        <td>
+                            <a href="{% url 'quiz:start_quiz' quiz.category_id %}">
+                                <button class="btn-primary mx-4 px-2 rounded">Start</button>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        </div>
+    {% else %}
+        <p>No quiz categories found.</p>
+    {% endif %}
+{% endblock %}

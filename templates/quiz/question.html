@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %} {% endblock %}</title>
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+
+
+<div class="container mt-4">
+
+{% block content %}
+    <div class="text-center">
+        <h1>{{ quiz_topic }} Quiz</h1>
+        <h3 id="timer" class="text-danger">Time Left: 5:00</h3>
+    </div>
+    <div class="mb-4">
+        <form method="POST" action="{% url 'quiz:start_quiz' category_id %}">
+            {% csrf_token %}
+            {% for question in questions %}
+                <h3>{{ forloop.counter }}) {{ question.question_text }}</h3>
+                <input type="radio" name="{{ question.id }}" value="{{ question.option1 }}"> {{ question.option1 }}<br>
+                <input type="radio" name="{{ question.id }}" value="{{ question.option2 }}"> {{ question.option2 }}<br>
+                <input type="radio" name="{{ question.id }}" value="{{ question.option3 }}"> {{ question.option3 }}<br>
+                <input type="radio" name="{{ question.id }}" value="{{ question.option4 }}"> {{ question.option4 }}<br><br>
+            {% endfor %}
+            <div class="text-center">
+                <input class="btn-primary rounded px-4" type="submit" value="Submit">
+            </div>
+        </form>
+    </div>
+    <script>
+
+        // Set the timer for 5 minutes
+        var timeLeft = 299 ; // 5 minutes * 60 seconds per minute
+        var timer = setInterval(function() {
+            // Update the timer display
+            var minutes = Math.floor(timeLeft / 60);
+            var seconds = timeLeft % 60;
+            var timerDisplay = document.getElementById("timer");
+            timerDisplay.innerHTML = "Time Left: " + minutes + ":" + seconds;
+
+            // Decrement the time left
+            timeLeft--;
+
+            // Automatically submit the quiz when the timer ends
+            if (timeLeft < 0) {
+                clearInterval(timer);
+                document.forms[0].submit();
+            }
+        }, 1000);
+    </script>
+
+{% endblock %}
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+</body>
+</html>
+
