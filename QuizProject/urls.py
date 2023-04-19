@@ -15,11 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+
+from QuizProject import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path('', include('authentication.urls')),
     path('quiz/', include('quiz.urls', namespace='quiz')),
+    re_path('.*', views.handler404, name='redirect_home'),
 ]
