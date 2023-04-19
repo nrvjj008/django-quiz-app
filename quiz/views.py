@@ -67,6 +67,21 @@ def start_quiz(request, category_id):
 
     # when a user starts a quiz, this will be called because the request will be a get request
     else:
+        selected_questions = Question.objects.filter(
+            quiz_category__category_id=category_id)  # get questions of the category_id
+        if len(selected_questions) == 0:
+            # Display an error message if no questions are found
+            error_message = 'No questions found.'
+            context = {'error_message': error_message}
+            return render(request, 'quiz/no_questions_found.html', context)
+
+        if len(selected_questions) > 5:
+            selected_questions = selected_questions.order_by('?')[:5]
+        # Shuffle the options for each question
+        for question in selected_questions:
+            options = [question.option1, question.option2, question.option3, question.option4]
+            random.shuffle(options)
+            question.option1, question.option2, question.option3, question.option4 = options  # reassign shuffled options back
 
         context = {
             'questions': selected_questions,
