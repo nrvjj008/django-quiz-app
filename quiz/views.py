@@ -13,26 +13,27 @@ def home(request): #home screen that displays all quiz categories
     quiz_categories = QuizCategory.objects.all() #retrive all quiz categories
     return render(request, 'quiz/home.html', {'quiz_categories': quiz_categories}) # pass categories as context
 
-
+selected_questions = []
 @login_required
 def start_quiz(request, category_id):
-    selected_questions = Question.objects.filter(quiz_category__category_id=category_id) # get questions of the category_id
-    quiz_topic = QuizCategory.objects.filter(id=category_id).values_list('category_name', flat=True).first() # to display quiz topic
-    if len(selected_questions) == 0:
-        # Display an error message if no questions are found
-        error_message = 'No questions found.'
-        context = {'error_message': error_message}
-        return render(request, 'quiz/no_questions_found.html', context)
+    quiz_topic = QuizCategory.objects.filter(id=category_id).values_list('category_name',flat=True).first()  # to display quiz topic
 
-    if len(selected_questions) > 5:
-        selected_questions = random.sample(list(selected_questions), 5) #randomize question of more than 5
+    global selected_questions
+    if not selected_questions:
+        selected_questions = Question.objects.filter(quiz_category__category_id=category_id) # get questions of the category_id
+        if len(selected_questions) == 0:
+            # Display an error message if no questions are found
+            error_message = 'No questions found.'
+            context = {'error_message': error_message}
+            return render(request, 'quiz/no_questions_found.html', context)
 
-    # Shuffle the options for each question
-    for question in selected_questions:
-        options = [question.option1, question.option2, question.option3, question.option4]
-        random.shuffle(options)
-        question.option1, question.option2, question.option3, question.option4 = options #reassign shuffled options back
-
+        if len(selected_questions) > 5:
+            selected_questions = selected_questions.order_by('?')[:5]
+        # Shuffle the options for each question
+        for question in selected_questions:
+            options = [question.option1, question.option2, question.option3, question.option4]
+            random.shuffle(options)
+            question.option1, question.option2, question.option3, question.option4 = options  # reassign shuffled options back
     #this will be called when a user submits the quiz since that is going to be a post request
     if request.method == 'POST':
         # Retrieve the quiz questions based on the category ID
@@ -66,6 +67,7 @@ def start_quiz(request, category_id):
 
     # when a user starts a quiz, this will be called because the request will be a get request
     else:
+
         context = {
             'questions': selected_questions,
             'category_id': category_id,
