@@ -14,7 +14,7 @@
 <li>Activate the virtual environment using <code>source env/bin/activate </code> (on Unix/Mac) or <code> .\env\Scripts\activate </code> (on Windows)
 <li>Install the dependencies using <code> pip install -r requirements.txt </code>
 </ol>
-<p>Starting the App
+<strong>Starting the App</strong>
 <p>Change the directory to the project directory
 <p>Run the Django development server using <code>python manage.py runserver</code>
 <p>Open a web browser and go to http://localhost:8000/ to see the application running
