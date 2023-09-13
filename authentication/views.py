@@ -6,7 +6,7 @@ from .forms import  SignUpForm
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('quiz:home')
+        return redirect('ebooks:book_list')
     if request.method == 'POST':
         form = AuthenticationForm(request, request.POST)
         if form.is_valid():
@@ -15,14 +15,14 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('quiz:home')
+                return redirect('ebooks:book_list')
     else:
         form = AuthenticationForm()
     return render(request, 'authentication/login.html', {'form': form})
 
 def signup(request):
     if request.user.is_authenticated:
-        return redirect('quiz:home')
+        return redirect('ebooks:book_list')
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
@@ -31,7 +31,7 @@ def signup(request):
             password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=password)
             login(request, user)
-            return redirect('quiz:home')
+            return redirect('ebooks:book_list')
     else:
         form = SignUpForm()
     return render(request, 'authentication/signup.html', {'form': form})

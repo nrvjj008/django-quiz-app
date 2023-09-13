@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto my-10 ">
+  <!-- Add search form -->
+  <form method="get" action="" class=" flex justify-center">
+   <div class="w-fit px-4 py-2 border rounded-full">
+    <input type="text" name="search" placeholder="Search for books..." class="px-4 py-2">
+    <button type="submit">
+      <i class="fa fa-search"></i>
+    </button></button>
+  </div>
+  </form>
+
+  {% if search_results %}
+  <h2 class="text-2xl font-bold text-center p-4">Search Results</h2>
+  <div class="flex flex-wrap justify-center">
+    {% for book in search_results %}
+      <div class="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/6 p-4">
+        <div class="rounded-xl overflow-hidden bg-white shadow-2xl">
+          {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-full object-cover h-60">
+          {% else %}
+            <div class="text-center font-semibold">No Cover</div>
+          {% endif %}
+          <div class="p-4 flex flex-col items-center justify-between space-y-4">
+            <h5 class="text-xl font-semibold">{{ book.title }}</h5>
+            <a href="{% url 'ebooks:read_book' book.id %}" class="bg-blue-500 hover:bg-blue-700 text-white rounded-full px-4 py-2 mx-auto w-full block text-center">
+              Read
+            </a>
+            
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  {% for category in categories %}
+    <div class="p-4 border rounded-3xl my-4 bg-gray-100">
+    <h2 class="text-2xl font-bold text-center p-4">{{ category.name }}</h2>
+    <div class=" p-4">
+      <div class="book-carousel space-x-4">
+        {% for book in books %}
+          {% if book.category == category %}
+            <div class="px-2">
+              <div class="rounded-3xl overflow-hidden bg-white ">
+                {% if book.cover_image %}
+                  <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-full object-cover h-60">
+                {% else %}
+                  <div class="text-center font-semibold">No Cover Image</div>
+                {% endif %}
+                <div class="p-4 flex flex-col items-center justify-between space-y-4">
+                  <h5 class="text-xl font-semibold">{{ book.title }}</h5>
+                  <a href="{% url 'ebooks:read_book' book.id %}" class="bg-blue-500 hover:bg-blue-700 text-white rounded-full px-4 py-2 mx-auto w-full block text-center">
+                    Read
+                  </a>    </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+ 
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  $(document).ready(function(){
+    $('.book-carousel').slick({
+      infinite: true,
+      slidesToShow: 6,
+      slidesToScroll: 1,
+      prevArrow: '<button class="slick-prev" style=" background-color: #0F4C75; border-radius: 50%"></button>',
+      nextArrow: '<button class="slick-next" style="background-color: #0F4C75; border-radius: 50%"></button>',
+     responsive: [
+        {
+          breakpoint: 1024,
+          settings: {
+            slidesToShow: 3,
+            slidesToScroll: 1
+          }
+        },
+        {
+          breakpoint: 600,
+          settings: {
+            slidesToShow: 2,
+            slidesToScroll: 1
+          }
+        },
+        {
+          breakpoint: 480,
+          settings: {
+            slidesToShow: 1,
+            slidesToScroll: 1
+          }
+        }
+      ]
+    });
+  });
+</script>
+{% endblock %}

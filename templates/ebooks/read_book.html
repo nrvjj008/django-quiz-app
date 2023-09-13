@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<div class="container mx-auto p-4">
+
+  <!-- PDF Viewer -->
+  <div class="relative p-12 rounded-3xl" style="width: 90vw; height: 80vh;">
+    <iframe src="{% static 'pdfjs/web/viewer.html' %}?file={{ pdf_url }}" class="absolute inset-0 w-full h-full"></iframe>
+  </div>
+
+  <!-- Book Details -->
+  <div class="mt-12 p-8 bg-white rounded-3xl border border-indigo-500 mb-8">
+    <h2 class="text-2xl font-bold mb-4 text-indigo-500">Book Details</h2>
+    <p class="mb-2"><span class="font-bold">Title:</span> {{ book.title }}</p>
+    <p class="mb-2"><span class="font-bold">Author:</span> {{ book.author }}</p>
+    <p class="mb-2"><span class="font-bold">Description:</span> {{ book.description }}</p>
+    <p class="mb-2"><span class="font-bold">Category:</span> {{ book.category }}</p>
+    <p class="mb-2"><span class="font-bold">Language:</span> {{ book.language }}</p>
+    <p class="mb-2"><span class="font-bold">Published Year:</span> {{ book.published_year }}</p>
+    <p class="mb-2"><span class="font-bold">Publisher:</span> {{ book.publisher }}</p>
+  </div>
+
+  <!-- Notes Section -->
+  <div class="p-8 bg-white rounded-3xl border border-indigo-500 mb-8">
+    <h2 class="text-2xl font-bold mb-4 text-indigo-500">Notes</h2>
+    <form action="" method="post">
+      {% csrf_token %}
+      <div class="mb-4">
+        <textarea name="{{ note_form.text.name }}" id="{{ note_form.text.id_for_label }}" rows="5" class="w-full p-2 rounded border">{{ note_form.text.value }}</textarea>
+      </div>
+      <button type="submit" class="mt-4 bg-indigo-500 text-white p-2 rounded">Save</button>
+    </form>
+  </div>
+
+  <!-- Reviews Section -->
+  <div class="p-8 bg-white rounded-3xl border border-indigo-500 mb-8">
+    <h2 class="text-2xl font-bold mb-4 text-indigo-500">Reviews</h2>
+    <ul>
+      {% for review in reviews %}
+        <li class="border-b pb-2 mb-2">
+          <p class="mb-1"><span class="font-bold">User:</span> {{ review.user.username }}</p>
+          <p class="mb-1"><span class="font-bold">Rating:</span> {{ review.rating }}</p>
+          <p class="mb-1"><span class="font-bold">Comment:</span> {{ review.comment }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+</div>
+
+{% endblock %}
