@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-*j-70hb4aetufb_2wn89hn^aqjwueuoju&i1i$a9+@+11q+tjl
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Digital Ocean Spaces settings
 AWS_ACCESS_KEY_ID = 'DO00JGNCWUJGGM4VH2VR'
