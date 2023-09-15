@@ -4,6 +4,11 @@ from django.db.models.signals import post_init
 from django.dispatch import receiver
 from PyPDF2 import PdfFileReader
 from django.core.files.storage import default_storage as storage
+from pdf2image import convert_from_path
+from django.core.files.base import ContentFile
+import io, os
+from pdf2image import convert_from_bytes
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -24,6 +29,7 @@ def get_file_path(instance, filename):
     return 'ebooks/{0}/{1}'.format(instance.pk, filename)
 
 
+
 class Book(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
@@ -37,6 +43,8 @@ class Book(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     favorited_by = models.ManyToManyField(User, related_name="favorite_books", blank=True)
+    total_pages = models.PositiveIntegerField(null=True, blank=True)
+
 
     def save(self, *args, **kwargs):
         """Override the save method to handle ebook uploads."""
@@ -56,6 +64,28 @@ class Book(models.Model):
         if ebook_temp:
             self.ebook_path = ebook_temp
             super().save(update_fields=['ebook_path'])
+
+        # Convert the saved PDF to images
+        # You need to open the PDF from the storage since accessing directly via path won't work for S3 storages
+        pdf_file = self.ebook_path.storage.open(self.ebook_path.name, 'rb')
+        images = convert_from_bytes(pdf_file.read())
+        self.total_pages = len(images)
+        # Define the directory where images will be saved
+        directory_path = os.path.join("ebooks", str(self.pk))
+
+        # Save each page as an image to DigitalOcean Spaces
+        for i, image in enumerate(images, start=1):
+            image_name = os.path.join(directory_path, f"page_{i}.jpeg")
+
+            # Convert image to Bytes and save it to DigitalOcean Spaces
+            image_byte_array = io.BytesIO()
+            image.save(image_byte_array, format='JPEG',quality=70)
+            self.ebook_path.storage.save(image_name, ContentFile(image_byte_array.getvalue()))
+        pdf_file.close()
+        super().save(update_fields=['total_pages'])
+
+
+
     @property
     def average_rating(self):
         total_rating = sum(review.rating for review in self.reviews.all())
@@ -78,6 +108,12 @@ class Book(models.Model):
     #                 print(f"An error occurred while calculating page count: {e}")
     #     super(Book, self).save(*args, **kwargs)
     #     print(f"Saved with page count {self.page_count}")  # Debug line
+
+
+class UserBookProgress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    last_read_page = models.PositiveIntegerField(default=1)
 
 
 class Review(models.Model):

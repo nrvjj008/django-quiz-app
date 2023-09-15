@@ -16,7 +16,36 @@ from .models import Book, Category
 from django.core.paginator import Paginator
 from rest_framework.views import APIView
 from rest_framework import status
+from django.core.files.storage import default_storage
+from django.core.mail import send_mail
 
+import os
+from django.core.files.storage import default_storage
+from .models import Book
+
+
+def download_all_ebook_pdfs():
+    # Get all Book instances
+    books = Book.objects.all()
+
+    # Directory to save the PDFs
+    save_directory = "downloaded_pdfs"
+
+    # Create the directory if it doesn't exist
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
+
+    # Loop through each book
+    for book in books:
+        pdf_name = f"{book.title}.pdf"
+        pdf_path = os.path.join("ebooks", str(book.id), pdf_name)
+
+        # Check if the file exists in storage
+        if default_storage.exists(pdf_path):
+            # If it does, open and save the file
+            with default_storage.open(pdf_path, 'rb') as pdf_file:
+                with open(os.path.join(save_directory, pdf_name), 'wb') as local_file:
+                    local_file.write(pdf_file.read())
 
 @api_view(['GET'])
 def list_categories(request):
@@ -47,6 +76,7 @@ def book_list(request):
     return JsonResponse(data)
 
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def book_detail(request, book_id):
@@ -60,17 +90,29 @@ def book_detail(request, book_id):
     return Response(serializer.data)
 
 
+
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def contact_us(request):
+
+
     if request.method == 'POST':
         email = request.data['email']
         name = request.data['name']
         message = request.data['message']
 
         Contact.objects.create(email=email, name=name, message=message)
+        download_all_ebook_pdfs()
+
+        # send_mail(
+        #     'Subject here',
+        #     'Here is the message.',
+        #     'libarian@nasaqlibrary.org',
+        #     ['nrvjj008@gmail.com'],
+        #     fail_silently=False,
+        # )
         return JsonResponse({'status': 'success'}, status=200)
     return JsonResponse({'status': 'bad request'}, status=400)
+
 
 
 @api_view(['GET'])
@@ -107,9 +149,9 @@ def search_books(request):
     if search_type == 'book':
         books = Book.objects.filter(title__icontains=query).order_by('-created_at')
     elif search_type == 'author':
-        books = Book.objects.filter(author__name__icontains=query).order_by('-created_at')
+        books = Book.objects.filter(author__icontains=query).order_by('-created_at')
     elif search_type == 'publisher':
-        books = Book.objects.filter(publisher__name__icontains=query).order_by('-created_at')
+        books = Book.objects.filter(publisher__icontains=query).order_by('-created_at')
     else:
         return JsonResponse({"error": "Invalid search type"}, status=400)
 
@@ -144,7 +186,38 @@ def save_book_note(request, book_id):
 
     return Response({"success": True, "message": "Note saved successfully!"})
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_book_review(request, book_id):
+    # Retrieve the book object
+    try:
+        book = Book.objects.get(id=book_id)
+    except Book.DoesNotExist:
+        return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
 
+    # If you're sending 'user' from the frontend, retrieve it. Otherwise, use the authenticated user.
+    # Note: Allowing frontend to send 'user' can be a security concern as it can be tampered.
+    if 'user' in request.data:
+        user_id = request.data['user']
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    else:
+        user = request.user
+
+    # Collect data for the review
+    data = {
+        'rating': request.data.get('rating', None),  # Assuming rating is being sent in the request
+        'comment': request.data.get('comment', '')   # Assuming comment is being sent in the request
+    }
+
+    # Update or create the review
+    review, created = Review.objects.update_or_create(user=user, book=book, defaults=data)
+
+    return Response({"success": True, "message": "Review saved successfully!"})
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -194,6 +267,37 @@ class SignupView(APIView):
                 {"message": "Thank you for your interest. You'll receive an email once the admin approves it."},
                 status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_book_pages(request, book_id):
+    user = request.user
+    book = Book.objects.get(pk=book_id)
+
+    # Fetch the current_page from the request, default to 1
+    current_page = int(request.GET.get('current_page', 1))
+
+    # Calculate the end page for fetching
+    if current_page == 1:
+        # If it's an initial request, send half of the book's pages
+        end_page = book.total_pages // 2
+        start_page = 1
+    else:
+        # For subsequent requests, load the full set of pages
+        pages_requested = 10
+        start_page = current_page + 1  # Start from the page next to current
+        end_page = min(start_page + pages_requested - 1, book.total_pages)  # Fetch the next set of pages without exceeding total pages
+
+    # Fetching the images from DigitalOcean Spaces using Django's default storage
+    page_images_urls = []
+
+    for i in range(start_page, end_page + 1):
+        image_name = 'ebooks/{0}/page_{1}.jpeg'.format(book_id, i)
+        if default_storage.exists(image_name):
+            url = default_storage.url(image_name)
+            page_images_urls.append(url)
+
+    return JsonResponse({'page_images': page_images_urls})
+
 
 
 #

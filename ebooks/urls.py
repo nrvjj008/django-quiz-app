@@ -15,10 +15,12 @@ urlpatterns = [
     path('api/books/category/<int:category_id>/', views.category_books, name='category_books'),
     path('api/categories/', views.list_categories, name='list_categories'),
     path('api/book-notes/<int:book_id>/', views.save_book_note, name='book-note'),
+    path('api/book-review/<int:book_id>/', views.save_book_review, name='book-review'),
     path('api/signup/', SignupView.as_view(), name='signup'),
     path('api/books/<int:book_id>/toggle_favorite/', views.toggle_favorite, name='toggle_favorite'),
     path('api/user/favorites/', views.get_favorite_books, name='get_favorite_books'),
-    path('api/search/', views.search_books, name='search_books')
+    path('api/search/', views.search_books, name='search_books'),
+    path('api/book-pages/<int:book_id>/', views.get_book_pages, name='book-pages'),
 
 
 ]

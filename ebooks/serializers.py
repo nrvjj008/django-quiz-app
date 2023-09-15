@@ -1,12 +1,17 @@
 from rest_framework import serializers
-from .models import Book, Review, Note,  UserReason
+from .models import Book, Review, Note,  UserReason, UserBookProgress
 from django.contrib.auth.models import User
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    username = serializers.SerializerMethodField()
+
     class Meta:
         model = Review
-        fields = ['id', 'user', 'comment', 'rating']
+        fields = ['comment', 'rating', 'username']
+
+    def get_username(self, obj):
+        return obj.user.username
 
 class UserNoteSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,13 +25,14 @@ class BookDetailSerializer(serializers.ModelSerializer):
     average_rating = serializers.FloatField(read_only=True)
     language_title = serializers.SerializerMethodField()
     category_name = serializers.SerializerMethodField()
+    user_progress = serializers.SerializerMethodField()
 
     class Meta:
         model = Book
         fields = [
             'id', 'title', 'description', 'author', 'ebook_path', 'cover_image',
             'category', 'category_name', 'language', 'language_title', 'published_year',
-            'publisher', 'reviews', 'user_note', 'average_rating'  # Change 'notes' to 'user_note'
+            'publisher', 'reviews', 'user_note', 'average_rating','user_progress'  # Change 'notes' to 'user_note'
         ]
 
     def get_ebook_path(self, obj):
@@ -45,6 +51,13 @@ class BookDetailSerializer(serializers.ModelSerializer):
         if note:
             return UserNoteSerializer(note).data['text']
         return None  # Return None if there's no note for the authenticated user
+
+    def get_user_progress(self, obj):
+        user = self.context['request'].user
+        progress = UserBookProgress.objects.filter(user=user, book=obj).first()
+        if progress:
+            return progress.last_read_page
+        return 1  # Return 1 if there's no progress for the authenticated user
 
 
 class SignupSerializer(serializers.ModelSerializer):

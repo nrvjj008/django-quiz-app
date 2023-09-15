@@ -35,6 +35,24 @@ AWS_S3_ENDPOINT_URL = 'https://nirav-test.nyc3.digitaloceanspaces.com'
 # Override Django's default file storage to use Spaces
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
+# AWS_ACCESS_KEY_ID = 'DO00JGNCWUJGGM4VH2VR'
+# AWS_SECRET_ACCESS_KEY = 'v5YX9uBxCxg5UZ0Q2Qcp62BPaivYZUVWManFgY7j/w4'
+# AWS_STORAGE_BUCKET_NAME = 'test-nasaqnew'
+# AWS_S3_ENDPOINT_URL = 'https://test-nasaqnew.nyc3.digitaloceanspaces.com'
+# Override Django's default file storage to use Spaces
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+EMAIL_HOST = 'smtp.office365.com' # This is GoDaddy's outgoing SMTP server.
+EMAIL_PORT = 587
+EMAIL_USE_SSL = False
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'libarian@nasaqlibrary.org'  # Your email address
+
+EMAIL_HOST_PASSWORD = 'libarian121212'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# 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
+
 
 # AWS_ACCESS_KEY_ID = 'minio-access-key'  # Replace with your MinIO access key
 # AWS_SECRET_ACCESS_KEY = 'minio-secret-key'  # Replace with your MinIO secret key

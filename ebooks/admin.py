@@ -15,7 +15,7 @@ class BookAdmin(admin.ModelAdmin):
     search_fields = ['title', 'author']
     list_filter = ['category', 'language']
     ordering = ['created_at']
-    exclude = ['favorited_by']
+    exclude = ['favorited_by','total_pages']
     # Your other custom configurations
 
 
