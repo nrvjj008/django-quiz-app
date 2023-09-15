@@ -99,7 +99,10 @@ MIDDLEWARE = [
 
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+ALLOWED_HOSTS = ['159.223.235.130', 'localhost', '127.0.0.1']
+
+# CORS Configuration
+CORS_ALLOW_ALL_ORIGINS = True  # This is for testing purposes.
 
 
 REST_FRAMEWORK = {
