@@ -73,7 +73,7 @@ MIDDLEWARE = [
 
 ]
 
-ALLOWED_HOSTS = ['159.223.235.130', 'localhost', '127.0.0.1','nasaq.org']
+ALLOWED_HOSTS = ['159.223.235.130', 'localhost', '127.0.0.1','nasaqlibrary.org']
 
 # CORS Configuration
 CORS_ALLOW_ALL_ORIGINS = True  # This is for testing purposes.
