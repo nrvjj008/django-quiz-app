@@ -28,10 +28,16 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Digital Ocean Spaces settings
+# AWS_ACCESS_KEY_ID = 'DO00JGNCWUJGGM4VH2VR'
+# AWS_SECRET_ACCESS_KEY = 'v5YX9uBxCxg5UZ0Q2Qcp62BPaivYZUVWManFgY7j/w4'
+# AWS_STORAGE_BUCKET_NAME = 'nirav-test'
+# AWS_S3_ENDPOINT_URL = 'https://nirav-test.nyc3.digitaloceanspaces.com'
+
 AWS_ACCESS_KEY_ID = 'DO00JGNCWUJGGM4VH2VR'
 AWS_SECRET_ACCESS_KEY = 'v5YX9uBxCxg5UZ0Q2Qcp62BPaivYZUVWManFgY7j/w4'
-AWS_STORAGE_BUCKET_NAME = 'nirav-test'
-AWS_S3_ENDPOINT_URL = 'https://nirav-test.nyc3.digitaloceanspaces.com'
+AWS_STORAGE_BUCKET_NAME = 'test-nasaqnew'
+AWS_S3_ENDPOINT_URL = 'https://test-nasaqnew.nyc3.digitaloceanspaces.com'
+# Override Django's default file storage to use Spaces
 
 #
 # AWS_ACCESS_KEY_ID = 'DO00GT4NWXYK9QE44VNY'
@@ -39,7 +45,8 @@ AWS_S3_ENDPOINT_URL = 'https://nirav-test.nyc3.digitaloceanspaces.com'
 # AWS_STORAGE_BUCKET_NAME = 'nasaqstor1'
 # AWS_S3_ENDPOINT_URL = 'https://nasaqstor1.ams3.digitaloceanspaces.com'
 # Override Django's default file storage to use Spaces
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+#DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

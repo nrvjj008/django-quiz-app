@@ -91,6 +91,7 @@ class UserAdmin(DefaultUserAdmin):
         )
 
         messages.success(request, 'User has been approved and an email has been sent.')
+        return redirect('..')
 
     def reject_user_view(self, request, user_id):
         user = User.objects.get(pk=user_id)
