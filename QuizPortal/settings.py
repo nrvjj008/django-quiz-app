@@ -45,12 +45,12 @@ DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtpout.secureserver.net'  # GoDaddy's SMTP server
 EMAIL_PORT = 465
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'libarian@nasaqlibrary.org'  # Your email address
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = 'info@nasaqlibrary.org'  # Your email address
 
-EMAIL_HOST_PASSWORD = 'libarian121212'
-DEFAULT_FROM_EMAIL = 'libarian@nasaqlibrary.org'
+EMAIL_HOST_PASSWORD = 'xanc vbjv ewms nlzh'
+DEFAULT_FROM_EMAIL = 'info@nasaqlibrary.org'
 # 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
 
 
