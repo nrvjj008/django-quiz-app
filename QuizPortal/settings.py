@@ -27,29 +27,29 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-# # Digital Ocean Spaces settings
-# AWS_ACCESS_KEY_ID = 'DO00JGNCWUJGGM4VH2VR'
-# AWS_SECRET_ACCESS_KEY = 'v5YX9uBxCxg5UZ0Q2Qcp62BPaivYZUVWManFgY7j/w4'
-# AWS_STORAGE_BUCKET_NAME = 'nirav-test'
-# AWS_S3_ENDPOINT_URL = 'https://nirav-test.nyc3.digitaloceanspaces.com'
-# Override Django's default file storage to use Spaces
+# Digital Ocean Spaces settings
+AWS_ACCESS_KEY_ID = 'DO00JGNCWUJGGM4VH2VR'
+AWS_SECRET_ACCESS_KEY = 'v5YX9uBxCxg5UZ0Q2Qcp62BPaivYZUVWManFgY7j/w4'
+AWS_STORAGE_BUCKET_NAME = 'nirav-test'
+AWS_S3_ENDPOINT_URL = 'https://nirav-test.nyc3.digitaloceanspaces.com'
 
-
-AWS_ACCESS_KEY_ID = 'DO00GT4NWXYK9QE44VNY'
-AWS_SECRET_ACCESS_KEY = '5oEq4GhteWrLgGqlR/i+ad8JfAwlR9ejKf8ejz7BbpY'
-AWS_STORAGE_BUCKET_NAME = 'nasaqstor1'
-AWS_S3_ENDPOINT_URL = 'https://nasaqstor1.ams3.digitaloceanspaces.com'
+#
+# AWS_ACCESS_KEY_ID = 'DO00GT4NWXYK9QE44VNY'
+# AWS_SECRET_ACCESS_KEY = '5oEq4GhteWrLgGqlR/i+ad8JfAwlR9ejKf8ejz7BbpY'
+# AWS_STORAGE_BUCKET_NAME = 'nasaqstor1'
+# AWS_S3_ENDPOINT_URL = 'https://nasaqstor1.ams3.digitaloceanspaces.com'
 # Override Django's default file storage to use Spaces
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtpout.secureserver.net'  # GoDaddy's SMTP server
-EMAIL_PORT = 465
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-EMAIL_HOST_USER = 'info@nasaqlibrary.org'  # Your email address
 
-EMAIL_HOST_PASSWORD = 'xanc vbjv ewms nlzh'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'info@nasaqlibrary.org'
+
+EMAIL_HOST_PASSWORD = 'awxk jyzx pimf kpkz'
 DEFAULT_FROM_EMAIL = 'info@nasaqlibrary.org'
 # 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
 
