@@ -79,13 +79,11 @@ class Book(models.Model):
             image.save(image_byte_array, format='JPEG', quality=100)
             self.ebook_path.storage.save(image_name, ContentFile(image_byte_array.getvalue()))
 
-        # Use ThreadPoolExecutor to run the saving operations in parallel
-        with ThreadPoolExecutor() as executor:
-            executor.map(save_image_to_storage, images, range(1, self.total_pages + 1))
+        # Sequentially save each image
+        for idx, image in enumerate(images, start=1):
+            save_image_to_storage(image, idx)
 
         super().save(update_fields=['total_pages'])
-
-
 
     @property
     def average_rating(self):
