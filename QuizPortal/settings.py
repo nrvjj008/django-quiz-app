@@ -11,6 +11,31 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
 from pathlib import Path
+from decouple import config
+
+# For boolean variables
+DEBUG = config('DEBUG', default=False, cast=bool)
+
+# For string variables
+SECRET_KEY = config('SECRET_KEY')
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
+
+
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+EMAIL_PORT = 587
+
+EMAIL_USE_SSL = True
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+
+# You can also set default values
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,57 +44,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*j-70hb4aetufb_2wn89hn^aqjwueuoju&i1i$a9+@+11q+tjl'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['*']
-
-# Digital Ocean Spaces settings
-AWS_ACCESS_KEY_ID = 'DO00JGNCWUJGGM4VH2VR'
-AWS_SECRET_ACCESS_KEY = 'v5YX9uBxCxg5UZ0Q2Qcp62BPaivYZUVWManFgY7j/w4'
-AWS_STORAGE_BUCKET_NAME = 'nirav-test'
-AWS_S3_ENDPOINT_URL = 'https://nirav-test.nyc3.digitaloceanspaces.com'
-# Override Django's default file storage to use Spaces
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-# AWS_ACCESS_KEY_ID = 'DO00JGNCWUJGGM4VH2VR'
-# AWS_SECRET_ACCESS_KEY = 'v5YX9uBxCxg5UZ0Q2Qcp62BPaivYZUVWManFgY7j/w4'
-# AWS_STORAGE_BUCKET_NAME = 'test-nasaqnew'
-# AWS_S3_ENDPOINT_URL = 'https://test-nasaqnew.nyc3.digitaloceanspaces.com'
-# Override Django's default file storage to use Spaces
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-EMAIL_HOST = 'smtp.office365.com' # This is GoDaddy's outgoing SMTP server.
-EMAIL_PORT = 587
-EMAIL_USE_SSL = False
-EMAIL_USE_TLS = True
-
-EMAIL_HOST_USER = 'libarian@nasaqlibrary.org'  # Your email address
-
-EMAIL_HOST_PASSWORD = 'libarian121212'
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-# 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
-
-
-# AWS_ACCESS_KEY_ID = 'minio-access-key'  # Replace with your MinIO access key
-# AWS_SECRET_ACCESS_KEY = 'minio-secret-key'  # Replace with your MinIO secret key
-# AWS_STORAGE_BUCKET_NAME = 'my-bucket'  # Replace with your bucket name
-# AWS_S3_CUSTOM_DOMAIN = 'localhost:9000'
-# AWS_S3_ENDPOINT_URL = 'http://localhost:9000'
-# AWS_S3_OBJECT_PARAMETERS = {
-#     'CacheControl': 'max-age=86400',
-# }
-# AWS_DEFAULT_ACL = 'public-read'
-# AWS_QUERYSTRING_AUTH = False
-# AWS_S3_REGION_NAME = 'us-east-1'  # Region is not really important for MinIO
-
-# # Use S3 as the default storage backend
-# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -99,7 +73,7 @@ MIDDLEWARE = [
 
 ]
 
-ALLOWED_HOSTS = ['159.223.235.130', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['159.223.235.130', 'localhost', '127.0.0.1','nasaq.org']
 
 # CORS Configuration
 CORS_ALLOW_ALL_ORIGINS = True  # This is for testing purposes.

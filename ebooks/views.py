@@ -260,32 +260,65 @@ def get_favorite_books(request):
 
 class SignupView(APIView):
     def post(self, request):
+        username = request.data.get('username')
+
+        # Check if the username already exists
+        if User.objects.filter(username=username).exists():
+            return Response({"message": "Thank you for your interest. We'll get back to you."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(
                 {"message": "Thank you for your interest. You'll receive an email once the admin approves it."},
                 status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def get_book_pages(request, book_id):
+#     user = request.user
+#     book = Book.objects.get(pk=book_id)
+#
+#     # Fetch the current_page from the request, default to 1
+#     current_page = int(request.GET.get('current_page', 1))
+#
+#     # Calculate the end page for fetching
+#     if current_page == 1:
+#         # If it's an initial request, send half of the book's pages
+#         end_page = book.total_pages // 5
+#         start_page = 1
+#     else:
+#         # For subsequent requests, load the full set of pages
+#         pages_requested = 10
+#         start_page = current_page + 1  # Start from the page next to current
+#         end_page = min(start_page + pages_requested - 1, book.total_pages)  # Fetch the next set of pages without exceeding total pages
+#
+#     # Fetching the images from DigitalOcean Spaces using Django's default storage
+#     page_images_urls = []
+#
+#     for i in range(start_page, end_page + 1):
+#         image_name = 'ebooks/{0}/page_{1}.jpeg'.format(book_id, i)
+#         if default_storage.exists(image_name):
+#             url = default_storage.url(image_name)
+#             page_images_urls.append(url)
+#
+#     return JsonResponse({'page_images': page_images_urls})
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_book_pages(request, book_id):
     user = request.user
     book = Book.objects.get(pk=book_id)
 
-    # Fetch the current_page from the request, default to 1
-    current_page = int(request.GET.get('current_page', 1))
+    # Fetch the current_page from the request, default to 0
+    current_page = int(request.GET.get('current_page', 0))
+    pages_per_request = 10
 
-    # Calculate the end page for fetching
-    if current_page == 1:
-        # If it's an initial request, send half of the book's pages
-        end_page = book.total_pages // 2
-        start_page = 1
-    else:
-        # For subsequent requests, load the full set of pages
-        pages_requested = 10
-        start_page = current_page + 1  # Start from the page next to current
-        end_page = min(start_page + pages_requested - 1, book.total_pages)  # Fetch the next set of pages without exceeding total pages
+    # Calculate the start and end pages for fetching
+    start_page = current_page   # Start from the page next to current
+    end_page = min(start_page + pages_per_request - 1, book.total_pages)  # Fetch the next set of pages without exceeding total pages
 
     # Fetching the images from DigitalOcean Spaces using Django's default storage
     page_images_urls = []
@@ -298,7 +331,23 @@ def get_book_pages(request, book_id):
 
     return JsonResponse({'page_images': page_images_urls})
 
-
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def get_book_pages(request, book_id):
+#     user = request.user
+#     book = Book.objects.get(pk=book_id)
+#
+#
+#     # Fetching the images from DigitalOcean Spaces using Django's default storage
+#     page_images_urls = []
+#
+#     for i in range(start_page, end_page + 1):
+#         image_name = 'ebooks/{0}/page_{1}.jpeg'.format(book_id, i)
+#         if default_storage.exists(image_name):
+#             url = default_storage.url(image_name)
+#             page_images_urls.append(url)
+#
+#     return JsonResponse({'page_images': page_images_urls})
 
 #
 # class BookNoteView(generics.GenericAPIView):
