@@ -42,8 +42,8 @@ def get_file_path(instance, filename):
 
 def convert_single_page_to_image(book, page_num):
     """Converts a single page of the book's PDF to an image."""
-    with book.ebook_path.open('rb') as pdf_file:
-        images = convert_from_bytes(pdf_file.read(), first_page=page_num, last_page=page_num)
+    pdf_data = book.ebook_path.read()
+    images = convert_from_bytes(pdf_data, first_page=page_num, last_page=page_num)
 
     image_name = f"page_{page_num}.jpeg"
     image_path = os.path.join('ebooks', str(book.pk), image_name)
@@ -72,25 +72,7 @@ class Book(models.Model):
     favorited_by = models.ManyToManyField(User, related_name="favorite_books", blank=True)
     total_pages = models.PositiveIntegerField(null=True, blank=True)
 
-    # def save(self, *args, **kwargs):
-    #     """Override the save method to handle ebook uploads."""
-    #
-    #     # Save the instance so it gets an ID
-    #     super().save(*args, **kwargs)
-    #
-    #     # Convert the saved PDF to images
-    #     with self.ebook_path.open('rb') as pdf_file:
-    #         images = convert_from_bytes(pdf_file.read())
-    #     self.total_pages = len(images)
-    #     directory_path = os.path.join("ebooks", str(self.pk))
-    #
-    #     for idx, image in enumerate(images, start=1):
-    #         image_name = os.path.join(directory_path, f"page_{idx}.jpeg")
-    #         image_byte_array = io.BytesIO()
-    #         image.save(image_byte_array, format='JPEG', quality=100)
-    #         self.ebook_path.storage.save(image_name, ContentFile(image_byte_array.getvalue()))
-    #
-    #     super().save(update_fields=['total_pages'])
+
     def save(self, *args, **kwargs):
         # Handle cover_image
         cover_image_changed = False
@@ -102,9 +84,9 @@ class Book(models.Model):
         # Handle ebook_path
         ebook_changed = False
         if self.ebook_path:
-            with self.ebook_path.open('rb') as pdf_file:
-                reader = PdfReader(pdf_file)
-                total_pages = len(reader.pages)
+            pdf_data = self.ebook_path.read()
+            reader = PdfReader(io.BytesIO(pdf_data))
+            total_pages = len(reader.pages)
 
             self.total_pages = total_pages
             ebook_changed = True
