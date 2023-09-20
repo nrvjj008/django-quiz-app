@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_init
 from django.dispatch import receiver
-from PyPDF2 import PdfReader, PdfReadError
+from PyPDF2 import PdfReader
 
 from django.core.files.storage import default_storage as storage
 from pdf2image import convert_from_path
@@ -86,7 +86,7 @@ class Book(models.Model):
                 reader = PdfReader(io.BytesIO(pdf_data))
                 self.total_pages = len(reader.pages)
                 ebook_changed = True
-            except PdfReadError:
+            except Exception as e:
                 self.total_pages = 0
 
         # Save the instance first if ebook changed but cover_image did not
