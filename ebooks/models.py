@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_init
 from django.dispatch import receiver
-from PyPDF2 import PdfReader
+from PyPDF2 import PdfReader, PdfReadError
 
 from django.core.files.storage import default_storage as storage
 from pdf2image import convert_from_path
@@ -40,9 +40,8 @@ def get_file_path(instance, filename):
     return os.path.join('ebooks', str(instance.pk), filename)
 
 
-def convert_single_page_to_image(book, page_num):
+def convert_single_page_to_image(book, page_num, pdf_data):
     """Converts a single page of the book's PDF to an image."""
-    pdf_data = book.ebook_path.read()
     images = convert_from_bytes(pdf_data, first_page=page_num, last_page=page_num)
 
     image_name = f"page_{page_num}.jpeg"
@@ -72,24 +71,23 @@ class Book(models.Model):
     favorited_by = models.ManyToManyField(User, related_name="favorite_books", blank=True)
     total_pages = models.PositiveIntegerField(null=True, blank=True)
 
-
     def save(self, *args, **kwargs):
         # Handle cover_image
         cover_image_changed = False
         if self.cover_image and hasattr(self.cover_image, 'file'):
-            # Save the instance first to get an ID for cover_image's path
             super().save(*args, **kwargs)
             cover_image_changed = True
 
         # Handle ebook_path
         ebook_changed = False
         if self.ebook_path:
-            pdf_data = self.ebook_path.read()
-            reader = PdfReader(io.BytesIO(pdf_data))
-            total_pages = len(reader.pages)
-
-            self.total_pages = total_pages
-            ebook_changed = True
+            try:
+                pdf_data = self.ebook_path.read()
+                reader = PdfReader(io.BytesIO(pdf_data))
+                self.total_pages = len(reader.pages)
+                ebook_changed = True
+            except PdfReadError:
+                self.total_pages = 0
 
         # Save the instance first if ebook changed but cover_image did not
         if ebook_changed and not cover_image_changed:
@@ -98,7 +96,7 @@ class Book(models.Model):
         # Convert pages to images only if the ebook has changed
         if ebook_changed:
             for page_num in range(1, self.total_pages + 1):
-                convert_single_page_to_image(self, page_num)
+                convert_single_page_to_image(self, page_num, pdf_data)
 
     @property
     def average_rating(self):
