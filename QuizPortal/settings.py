@@ -15,7 +15,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+DEBUG = True
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -26,7 +26,6 @@ SECRET_KEY = 'django-insecure-*j-70hb4aetufb_2wn89hn^aqjwueuoju&i1i$a9+@+11q+tjl
 
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -36,7 +35,6 @@ EMAIL_HOST_USER = 'info@nasaqlibrary.org'
 
 EMAIL_HOST_PASSWORD = 'awxk jyzx pimf kpkz'
 DEFAULT_FROM_EMAIL = 'info@nasaqlibrary.org'
-
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -63,14 +61,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 
-
 ]
 
-ALLOWED_HOSTS = ['159.223.235.130', 'localhost', '127.0.0.1','nasaqlibrary.org']
+ALLOWED_HOSTS = ['159.223.235.130', 'localhost', '127.0.0.1', 'nasaqlibrary.org']
 
 # CORS Configuration
 CORS_ALLOW_ALL_ORIGINS = True  # This is for testing purposes.
-
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -90,7 +86,6 @@ LOGIN_REDIRECT_URL = '/'
 # New or modified settings
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # NEW LINE
 STATICFILES_DIRS = [BASE_DIR / "static"]  # Make sure this directory exists in your project folder
-
 
 TEMPLATES = [
     {
@@ -134,7 +129,6 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -153,7 +147,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -164,7 +157,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
