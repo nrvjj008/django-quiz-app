@@ -65,16 +65,17 @@ def book_list(request):
         if books_in_category.exists():
             book_list = []
             for book in books_in_category:
+                # Check if book has a cover_image before accessing its URL
+                cover_image_url = request.build_absolute_uri(book.cover_image.url) if book.cover_image else None
                 book_list.append({
                     'id': book.id,
                     'title': book.title,
-                    'cover_image': request.build_absolute_uri(book.cover_image.url)
+                    'cover_image': cover_image_url
                 })
 
             data[category.name] = book_list
 
     return JsonResponse(data)
-
 
 
 @api_view(['GET'])
