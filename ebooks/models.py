@@ -2,13 +2,17 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_init
 from django.dispatch import receiver
-from PyPDF2 import PdfFileReader
+from PyPDF2 import PdfReader
+
 from django.core.files.storage import default_storage as storage
 from pdf2image import convert_from_path
 from django.core.files.base import ContentFile
 import io, os
 from pdf2image import convert_from_bytes
 from concurrent.futures import ThreadPoolExecutor
+import threading
+from django.db import close_old_connections
+from time import sleep
 
 
 class Category(models.Model):
@@ -24,12 +28,25 @@ class Language(models.Model):
     def __str__(self):
         return self.name
 
-
 def get_file_path(instance, filename):
     """Determine the path for the uploaded ebook."""
-    return 'ebooks/{0}/{1}'.format(instance.pk, filename)
+    return os.path.join('ebooks', str(instance.pk), filename)
 
+def convert_single_page_to_image(book, page_num):
+    """Converts a single page of the book's PDF to an image."""
+    with book.ebook_path.open('rb') as pdf_file:
+        images = convert_from_bytes(pdf_file.read(), first_page=page_num, last_page=page_num)
 
+    image_name = f"page_{page_num}.jpeg"
+    image_path = os.path.join('ebooks', str(book.pk), image_name)
+
+    image_byte_array = io.BytesIO()
+    images[0].save(image_byte_array, format='JPEG', quality=100)
+    book.ebook_path.storage.save(image_path, ContentFile(image_byte_array.getvalue()))
+
+    # Cleanup
+    del images
+    image_byte_array.close()
 
 class Book(models.Model):
     title = models.CharField(max_length=255)
@@ -48,61 +65,38 @@ class Book(models.Model):
 
     # def save(self, *args, **kwargs):
     #     """Override the save method to handle ebook uploads."""
-    #     # Check if the book instance is new or existing
-    #     is_new = self._state.adding
-    #
-    #     # Temporarily remove the ebook to save the instance first (only for new books)
-    #     ebook_temp = None
-    #     if is_new and self.ebook_path:
-    #         ebook_temp = self.ebook_path
-    #         self.ebook_path = None
     #
     #     # Save the instance so it gets an ID
     #     super().save(*args, **kwargs)
     #
-    #     # Now, re-attach the ebook and save again (only for new books)
-    #     if ebook_temp:
-    #         self.ebook_path = ebook_temp
-    #         super().save(update_fields=['ebook_path'])
-    #
     #     # Convert the saved PDF to images
-    #     pdf_file = self.ebook_path.storage.open(self.ebook_path.name, 'rb')
-    #     images = convert_from_bytes(pdf_file.read())
+    #     with self.ebook_path.open('rb') as pdf_file:
+    #         images = convert_from_bytes(pdf_file.read())
     #     self.total_pages = len(images)
     #     directory_path = os.path.join("ebooks", str(self.pk))
-    #     pdf_file.close()
     #
-    #     def save_image_to_storage(image, idx):
-    #         """Helper function to save an image to storage."""
+    #     for idx, image in enumerate(images, start=1):
     #         image_name = os.path.join(directory_path, f"page_{idx}.jpeg")
     #         image_byte_array = io.BytesIO()
     #         image.save(image_byte_array, format='JPEG', quality=100)
     #         self.ebook_path.storage.save(image_name, ContentFile(image_byte_array.getvalue()))
     #
-    #     # Use ThreadPoolExecutor to run the saving operations in parallel
-    #     with ThreadPoolExecutor() as executor:
-    #         executor.map(save_image_to_storage, images, range(1, self.total_pages + 1))
-    #
     #     super().save(update_fields=['total_pages'])
     def save(self, *args, **kwargs):
-        """Override the save method to handle ebook uploads."""
-
-        # Save the instance so it gets an ID
+        # Save the instance first. This ensures that the ebook_path is stored correctly.
         super().save(*args, **kwargs)
 
-        # Convert the saved PDF to images
-        with self.ebook_path.open('rb') as pdf_file:
-            images = convert_from_bytes(pdf_file.read())
-        self.total_pages = len(images)
-        directory_path = os.path.join("ebooks", str(self.pk))
+        # Only determine the total pages if the ebook_path has been changed.
+        if self.ebook_path:
+            with self.ebook_path.open('rb') as pdf_file:
+                reader = PdfReader(pdf_file)
+                total_pages = len(reader.pages)
 
-        for idx, image in enumerate(images, start=1):
-            image_name = os.path.join(directory_path, f"page_{idx}.jpeg")
-            image_byte_array = io.BytesIO()
-            image.save(image_byte_array, format='JPEG', quality=100)
-            self.ebook_path.storage.save(image_name, ContentFile(image_byte_array.getvalue()))
+            self.total_pages = total_pages
+            super().save(update_fields=['total_pages'])  # Update the total_pages field in the database.
 
-        super().save(update_fields=['total_pages'])
+            for page_num in range(1, total_pages + 1):
+                convert_single_page_to_image(self, page_num)
 
     @property
     def average_rating(self):
