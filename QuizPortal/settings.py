@@ -14,6 +14,7 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+FILE_UPLOAD_MAX_MEMORY_SIZE = 500 * 1024 * 1024  # 50MB
 
 DEBUG = True
 # Quick-start development settings - unsuitable for production

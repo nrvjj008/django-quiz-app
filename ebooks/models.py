@@ -13,6 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 import threading
 from django.db import close_old_connections
 from time import sleep
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 class Category(models.Model):
@@ -29,16 +30,13 @@ class Language(models.Model):
     def __str__(self):
         return self.name
 
-
 def get_cover_image_path(instance, filename):
     """Determine the path for the uploaded cover image."""
     return os.path.join('book_covers', str(instance.pk), filename)
 
-
 def get_file_path(instance, filename):
     """Determine the path for the uploaded ebook."""
     return os.path.join('ebooks', str(instance.pk), filename)
-
 
 def convert_single_page_to_image(book, page_num, pdf_data):
     """Converts a single page of the book's PDF to an image."""
@@ -47,13 +45,11 @@ def convert_single_page_to_image(book, page_num, pdf_data):
     image_name = f"page_{page_num}.jpeg"
     image_path = os.path.join('ebooks', str(book.pk), image_name)
 
-    image_byte_array = io.BytesIO()
-    images[0].save(image_byte_array, format='JPEG', quality=100)
-    book.ebook_path.storage.save(image_path, ContentFile(image_byte_array.getvalue()))
+    with io.BytesIO() as image_byte_array:
+        images[0].save(image_byte_array, format='JPEG', quality=100)
+        book.ebook_path.storage.save(image_path, ContentFile(image_byte_array.getvalue()))
 
-    # Cleanup
     del images
-    image_byte_array.close()
 
 
 class Book(models.Model):
@@ -75,28 +71,29 @@ class Book(models.Model):
         # Handle cover_image
         cover_image_changed = False
         if self.cover_image and hasattr(self.cover_image, 'file'):
-            super().save(*args, **kwargs)
+            super().save(*args, **kwargs)  # Save to get an ID
             cover_image_changed = True
 
         # Handle ebook_path
         ebook_changed = False
+        pdf_data = None
+
         if self.ebook_path:
+            pdf_data = self.ebook_path.read()
             try:
-                pdf_data = self.ebook_path.read()
                 reader = PdfReader(io.BytesIO(pdf_data))
                 self.total_pages = len(reader.pages)
                 ebook_changed = True
             except Exception as e:
                 self.total_pages = 0
 
-        # Save the instance first if ebook changed but cover_image did not
-        if ebook_changed and not cover_image_changed:
-            super().save(*args, **kwargs)
-
         # Convert pages to images only if the ebook has changed
-        if ebook_changed:
+        if ebook_changed and pdf_data:
             for page_num in range(1, self.total_pages + 1):
                 convert_single_page_to_image(self, page_num, pdf_data)
+
+        # Save the instance to update any changes, especially total_pages
+        super().save(*args, **kwargs)
 
     @property
     def average_rating(self):
