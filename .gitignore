@@ -1,0 +1,51 @@
+# Python & Django related
+*.pyc
+__pycache__/
+*.pyo
+*.egg-info/
+*.egg
+*.log
+
+# SQLite databases
+*.sqlite3
+db.sqlite3
+
+# Static and media files
+media/
+static/
+
+# Virtual environment
+venv/
+*.venv
+.env
+
+# IDE - PyCharm
+.idea/
+
+# macOS
+.DS_Store
+
+# Other files and directories to exclude
+*.bak
+*.swp
+*.swo
+*.orig
+*.old
+*.tmp
+
+# Cache
+.cache
+*.cache/
+*.sass-cache/
+
+# .local settings for django
+*.local.py
+
+# pytest
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# vscode settings
+.vscode/
