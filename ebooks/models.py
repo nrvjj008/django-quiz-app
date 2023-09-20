@@ -22,15 +22,23 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+
 class Language(models.Model):
     name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.name
 
+
+def get_cover_image_path(instance, filename):
+    """Determine the path for the uploaded cover image."""
+    return os.path.join('book_covers', str(instance.pk), filename)
+
+
 def get_file_path(instance, filename):
     """Determine the path for the uploaded ebook."""
     return os.path.join('ebooks', str(instance.pk), filename)
+
 
 def convert_single_page_to_image(book, page_num):
     """Converts a single page of the book's PDF to an image."""
@@ -48,12 +56,13 @@ def convert_single_page_to_image(book, page_num):
     del images
     image_byte_array.close()
 
+
 class Book(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     author = models.CharField(max_length=255)
     ebook_path = models.FileField(upload_to=get_file_path, null=True, blank=True)
-    cover_image = models.ImageField(upload_to='book_covers/', null=True, blank=True)
+    cover_image = models.ImageField(upload_to=get_cover_image_path, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='books')
     language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True)
     published_year = models.IntegerField(null=True, blank=True)
@@ -83,19 +92,30 @@ class Book(models.Model):
     #
     #     super().save(update_fields=['total_pages'])
     def save(self, *args, **kwargs):
-        # Save the instance first. This ensures that the ebook_path is stored correctly.
-        super().save(*args, **kwargs)
+        # Handle cover_image
+        cover_image_changed = False
+        if self.cover_image and hasattr(self.cover_image, 'file'):
+            # Save the instance first to get an ID for cover_image's path
+            super().save(*args, **kwargs)
+            cover_image_changed = True
 
-        # Only determine the total pages if the ebook_path has been changed.
+        # Handle ebook_path
+        ebook_changed = False
         if self.ebook_path:
             with self.ebook_path.open('rb') as pdf_file:
                 reader = PdfReader(pdf_file)
                 total_pages = len(reader.pages)
 
             self.total_pages = total_pages
-            super().save(update_fields=['total_pages'])  # Update the total_pages field in the database.
+            ebook_changed = True
 
-            for page_num in range(1, total_pages + 1):
+        # Save the instance first if ebook changed but cover_image did not
+        if ebook_changed and not cover_image_changed:
+            super().save(*args, **kwargs)
+
+        # Convert pages to images only if the ebook has changed
+        if ebook_changed:
+            for page_num in range(1, self.total_pages + 1):
                 convert_single_page_to_image(self, page_num)
 
     @property
@@ -159,6 +179,7 @@ class Contact(models.Model):
 
     def __str__(self):
         return self.email
+
 
 class UserReason(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='reason_for_joining')
