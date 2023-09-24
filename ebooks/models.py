@@ -14,6 +14,8 @@ import threading
 from django.db import close_old_connections
 from time import sleep
 from django.core.files.uploadedfile import InMemoryUploadedFile
+import datetime
+from django.utils import timezone
 
 
 class Category(models.Model):
@@ -164,3 +166,13 @@ class UserReason(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+
+class PasswordResetCode(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + datetime.timedelta(minutes=30)

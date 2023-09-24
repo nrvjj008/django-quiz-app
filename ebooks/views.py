@@ -18,6 +18,18 @@ from rest_framework.views import APIView
 from rest_framework import status
 from django.core.files.storage import default_storage
 from django.core.mail import send_mail
+from django.core.mail import send_mail
+import random
+
+from django.http import JsonResponse
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth import get_user_model
+from django.utils.encoding import force_bytes
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
 
 import os
 from django.core.files.storage import default_storage
@@ -306,6 +318,64 @@ class SignupView(APIView):
 #             page_images_urls.append(url)
 #
 #     return JsonResponse({'page_images': page_images_urls})
+
+@api_view(['POST'])
+def request_password_reset(request):
+    email = request.data.get('email')
+    if not email:
+        return Response({"detail": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response({"detail": "No account with this email address."}, status=status.HTTP_404_NOT_FOUND)
+
+    code = ''.join(random.choice('0123456789') for i in range(6))
+    PasswordResetCode.objects.create(user=user, code=code)
+
+    send_mail(
+        'Your password reset code',
+        f'Your code is: {code}\n\nTo reset your password, click the following link:\nhttps://nasaqlibrary.org/resetPassword',
+        'info@nasaqlibrary.org',
+        [email],
+        fail_silently=False,
+    )
+
+    print(code)
+    return Response({"detail": "Reset code sent to email."}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def verify_password_reset(request):
+    email = request.data.get('email')
+    code = request.data.get('code')
+    password = request.data.get('password')
+    confirm_password = request.data.get('confirm_password')
+
+    if not all([email, code, password, confirm_password]):
+        return Response({"detail": "All fields are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response({"detail": "No account with this email address."}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        reset_code = PasswordResetCode.objects.get(user=user, code=code)
+    except PasswordResetCode.DoesNotExist:
+        return Response({"detail": "Invalid code."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if reset_code.is_expired():
+        reset_code.delete()
+        return Response({"detail": "Code has expired."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if password != confirm_password:
+        return Response({"detail": "Passwords don't match."}, status=status.HTTP_400_BAD_REQUEST)
+
+    user.set_password(password)
+    user.save()
+
+    reset_code.delete()
+    return Response({"detail": "Password updated successfully."}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

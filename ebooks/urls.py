@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import SignupView
+from .views import SignupView, request_password_reset, verify_password_reset
 
 app_name = 'ebooks'
 urlpatterns = [
@@ -21,6 +21,7 @@ urlpatterns = [
     path('api/user/favorites/', views.get_favorite_books, name='get_favorite_books'),
     path('api/search/', views.search_books, name='search_books'),
     path('api/book-pages/<int:book_id>/', views.get_book_pages, name='book-pages'),
-
+    path('api/request-password-reset/', request_password_reset, name='request-password-reset'),
+    path('api/verify-password-reset/', verify_password_reset, name='verify-password-reset'),
 
 ]
