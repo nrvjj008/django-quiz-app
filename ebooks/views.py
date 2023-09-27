@@ -72,7 +72,7 @@ def book_list(request):
     data = {}
 
     for category in categories:
-        books_in_category = Book.objects.filter(category=category)[:10]
+        books_in_category = Book.objects.filter(category=category).order_by('-created_at')[:10]
 
         if books_in_category.exists():
             book_list = []
