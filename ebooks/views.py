@@ -128,23 +128,19 @@ def contact_us(request):
 
 
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def category_books(request, category_id):
     # Fetch the category using ID
     category_ = get_object_or_404(Category, id=category_id)
 
-    # Get books for the fetched category
+    # Get all books for the fetched category
     books_in_category = Book.objects.filter(category=category_).order_by('-created_at')
-
-    # Paginate the results
-    paginator = Paginator(books_in_category, 20)
-    page = request.GET.get('page', 1)
-    current_page_books = paginator.get_page(page)
 
     # Create serialized data list
     serialized_data = []
-    for book in current_page_books:
+    for book in books_in_category:
         serialized_data.append({
             'id': book.id,
             'title': book.title,
