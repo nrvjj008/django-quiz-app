@@ -16,6 +16,7 @@ from time import sleep
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import datetime
 from django.utils import timezone
+from django.core.mail import send_mail
 
 
 class Category(models.Model):
@@ -126,6 +127,39 @@ class UserBookProgress(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     last_read_page = models.PositiveIntegerField(default=1)
 
+class NewsletterSubscription(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    subscribed = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.user.email
+
+
+class Newsletter(models.Model):
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+
+    def __str__(self):
+        return f"Newsletter {self.subject}"
+
+    def send_newsletter(self):
+        subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
+        # Extract the email addresses correctly by accessing the related User object
+        recipient_list = [sub.user.email for sub in subscribed_users if sub.user.email]
+        management_link = "\n\nTo manage your subscription, visit https://nasaqlibrary.org/newsLetter"
+        full_message = f"{self.message}{management_link}"
+
+        # Send the email
+        send_mail(
+            subject=self.subject,
+            message=full_message,
+            from_email=None,  # Uses DEFAULT_FROM_EMAIL from settings
+            recipient_list=recipient_list,
+            fail_silently=True,
+        )
+
+        # Update the sent_at time
+        self.save()
 
 class Review(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='reviews')

@@ -7,7 +7,7 @@ from django.utils.html import mark_safe
 from django.conf import settings
 
 
-from .models import Book, Category, Review, Note, Language, Contact, UserReason
+from .models import *
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
 
@@ -109,10 +109,23 @@ class ContactAdmin(admin.ModelAdmin):
 
 
 
-# Unregister the default User admin and register the modified one.
+class NewsletterAdmin(admin.ModelAdmin):
+    list_display = ['subject']
+
+    def save_model(self, request, obj, form, change):
+        # Always call the original save method to ensure the model is saved
+        super().save_model(request, obj, form, change)
+
+        # Send the newsletter immediately after saving
+        if not change:  # This checks if the object is being created, not modified
+            obj.send_newsletter()  # Send the newsletter
+            messages.success(request, f"Newsletter '{obj.subject}' sent successfully!")
+
+
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
+admin.site.register(Newsletter, NewsletterAdmin)
 admin.site.register(Book, BookAdmin)
 admin.site.register(Language, LanguageAdmin)
 admin.site.register(Category, CategoryAdmin)

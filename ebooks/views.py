@@ -103,6 +103,29 @@ def book_detail(request, book_id):
     return Response(serializer.data)
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def subscribe_newsletter(request):
+    user = request.user
+    NewsletterSubscription.objects.update_or_create(user=user, defaults={'subscribed': True})
+    return JsonResponse({'status': 'subscribed'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def unsubscribe_newsletter(request):
+    user = request.user
+    subscription, created = NewsletterSubscription.objects.get_or_create(user=user)
+    subscription.subscribed = False
+    subscription.save()
+    return JsonResponse({'status': 'unsubscribed'})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_subscription_status(request):
+    user = request.user
+    subscription = NewsletterSubscription.objects.filter(user=user).first()
+    is_subscribed = subscription.subscribed if subscription else False
+    return JsonResponse({'is_subscribed': is_subscribed})
 
 @api_view(['POST'])
 def contact_us(request):
@@ -116,13 +139,7 @@ def contact_us(request):
         Contact.objects.create(email=email, name=name, message=message)
         download_all_ebook_pdfs()
 
-        # send_mail(
-        #     'Subject here',
-        #     'Here is the message.',
-        #     'libarian@nasaqlibrary.org',
-        #     ['nrvjj008@gmail.com'],
-        #     fail_silently=False,
-        # )
+
         return JsonResponse({'status': 'success'}, status=200)
     return JsonResponse({'status': 'bad request'}, status=400)
 
@@ -462,7 +479,7 @@ def get_book_pages(request, book_id):
 #     return HttpResponse(image_bytes[0], content_type="image/png")
 #
 #
-# @login_required
+#
 # def book_list(request):
 #     search_query = request.GET.get('search', '')  # Get the search query if present
 #     if search_query:
@@ -481,7 +498,7 @@ def get_book_pages(request, book_id):
 #         fields = ['text']
 #
 #
-# @login_required
+#
 # def read_book(request, book_id):
 #     book = Book.objects.get(id=book_id)
 #     try:

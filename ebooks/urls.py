@@ -20,8 +20,7 @@ urlpatterns = [
     path('api/books/<int:book_id>/toggle_favorite/', views.toggle_favorite, name='toggle_favorite'),
     path('api/user/favorites/', views.get_favorite_books, name='get_favorite_books'),
     path('api/search/', views.search_books, name='search_books'),
-    path('api/book-pages/<int:book_id>/', views.get_book_pages, name='book-pages'),
-    path('api/request-password-reset/', request_password_reset, name='request-password-reset'),
-    path('api/verify-password-reset/', verify_password_reset, name='verify-password-reset'),
-
+    path('api/subscribe-newsletter/', views.subscribe_newsletter, name='subscribe-newsletter'),
+    path('api/newsletter-status/', views.check_subscription_status, name='subscription-status'),
+    path('api/unsubscribe-newsletter/', views.unsubscribe_newsletter, name='unsubscribe-newsletter'),
 ]
