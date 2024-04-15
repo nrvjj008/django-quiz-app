@@ -152,12 +152,17 @@ def category_books(request, category_id):
     # Fetch the category using ID
     category_ = get_object_or_404(Category, id=category_id)
 
-    # Get all books for the fetched category
+    # Get books for the fetched category
     books_in_category = Book.objects.filter(category=category_).order_by('-created_at')
+
+    # Paginate the results
+    paginator = Paginator(books_in_category, 20000)
+    page = request.GET.get('page', 1)
+    current_page_books = paginator.get_page(page)
 
     # Create serialized data list
     serialized_data = []
-    for book in books_in_category:
+    for book in current_page_books:
         serialized_data.append({
             'id': book.id,
             'title': book.title,
