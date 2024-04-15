@@ -9,6 +9,7 @@ urlpatterns = [
     # path('books/convert_pdf_to_images/<int:book_id>/<int:start_page>/<int:end_page>/', views.convert_pdf_to_images,
     #      name='convert_pdf_to_images'),
     # path('api/books/', views.book_list, name='book-list'),
+    path('api/book-pages/<int:book_id>/', views.get_book_pages, name='book-pages'),
     path('api/books/', views.book_list, name='book-list'),
     path('api/books/<int:book_id>/', views.book_detail, name='book_detail'),
     path('api/contactUs/', views.contact_us, name='contact_us'),
