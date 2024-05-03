@@ -17,7 +17,8 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 import datetime
 from django.utils import timezone
 from django.core.mail import send_mail
-
+from django.conf import settings
+import base64
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -32,7 +33,10 @@ class Language(models.Model):
 
     def __str__(self):
         return self.name
-
+def get_image_base64(image_path):
+    with open(image_path, 'rb') as image_file:
+        encoded_string = base64.b64encode(image_file.read())
+    return encoded_string.decode('utf-8')
 def get_cover_image_path(instance, filename):
     """Determine the path for the uploaded cover image."""
     return os.path.join('book_covers', str(instance.pk), filename)
@@ -130,6 +134,7 @@ class UserBookProgress(models.Model):
 class NewsletterSubscription(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     subscribed = models.BooleanField(default=True)
+    image = models.ImageField(upload_to='newsletter_images/', null=True, blank=True)  # New field
 
     def __str__(self):
         return self.user.email
@@ -138,29 +143,87 @@ class NewsletterSubscription(models.Model):
 class Newsletter(models.Model):
     subject = models.CharField(max_length=255)
     message = models.TextField()
+    image = models.ImageField(upload_to='newsletter_images/', null=True, blank=True)  # New field
 
     def __str__(self):
         return f"Newsletter {self.subject}"
 
+    # def send_newsletter(self):
+    #     subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
+    #     # Extract the email addresses correctly by accessing the related User object
+    #     recipient_list = [sub.user.email for sub in subscribed_users if sub.user.email]
+    #     management_link = "\n\nTo manage your subscription, visit https://nasaqlibrary.org/newsLetter"
+    #     full_message = f"{self.message}{management_link}"
+    #
+    #     # Send the email
+    #     send_mail(
+    #         subject=self.subject,
+    #         message=full_message,
+    #         from_email=None,  # Uses DEFAULT_FROM_EMAIL from settings
+    #         recipient_list=recipient_list,
+    #         fail_silently=True,
+    #     )
+    #
+    #     # Update the sent_at time
+    #     self.save()
     def send_newsletter(self):
         subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
-        # Extract the email addresses correctly by accessing the related User object
         recipient_list = [sub.user.email for sub in subscribed_users if sub.user.email]
         management_link = "\n\nTo manage your subscription, visit https://nasaqlibrary.org/newsLetter"
         full_message = f"{self.message}{management_link}"
 
-        # Send the email
-        send_mail(
-            subject=self.subject,
-            message=full_message,
-            from_email=None,  # Uses DEFAULT_FROM_EMAIL from settings
-            recipient_list=recipient_list,
-            fail_silently=True,
-        )
+        # Create an HTML content that mimics the email
+        html_content = f"<html><body><p>{full_message}</p>"
+        if self.image:
+            image_url = os.path.join(settings.MEDIA_URL, self.image.name)
+            html_content += f'<img src="{image_url}" alt="Newsletter Image"/>'
+        html_content += "</body></html>"
+
+        # Save to a local HTML file for review
+        filename = f"newsletter_{self.id}.html"
+        with open(os.path.join(settings.MEDIA_ROOT, filename), 'w') as file:
+            file.write(html_content)
+        print(f"Saved newsletter as {filename}")
+
+        # Optionally, here's how you'd send it as an email:
+        # email = EmailMessage(
+        #     subject=self.subject,
+        #     body=html_content,
+        #     from_email=settings.DEFAULT_FROM_EMAIL,
+        #     to=recipient_list
+        # )
+        # email.content_subtype = 'html'  # if you want to send HTML email
+        # if self.image:
+        #     email.attach_file(self.image.path)
+        # email.send(fail_silently=True)
 
         # Update the sent_at time
         self.save()
 
+    def send_newsletter(self):
+        subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
+        recipient_list = [sub.user.email for sub in subscribed_users if sub.user.email]
+        management_link = "\n\nTo manage your subscription, visit https://nasaqlibrary.org/newsLetter"
+        full_message = f"{self.message}{management_link}"
+
+        html_content = f"<html><body><p>{full_message}</p>"
+        if self.image:
+            image_base64 = get_image_base64(self.image.path)
+            image_mime = 'image/jpeg'  # Change this based on your image's MIME type
+            html_content += f'<img src="data:{image_mime};base64,{image_base64}" alt="Newsletter Image"/>'
+        html_content += "</body></html>"
+
+        email = EmailMessage(
+            subject=self.subject,
+            body=html_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=recipient_list
+        )
+        email.content_subtype = 'html'  # Ensure the email is sent as HTML
+        email.send(fail_silently=True)
+
+        # Update the sent_at time
+        self.save()
 class Review(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(User, on_delete=models.CASCADE)

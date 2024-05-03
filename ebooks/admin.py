@@ -110,7 +110,8 @@ class ContactAdmin(admin.ModelAdmin):
 
 
 class NewsletterAdmin(admin.ModelAdmin):
-    list_display = ['subject']
+    list_display = ['subject', 'message', 'image']
+    fields = ['subject', 'message', 'image']
 
     def save_model(self, request, obj, form, change):
         # Always call the original save method to ensure the model is saved
