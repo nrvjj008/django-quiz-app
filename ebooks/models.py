@@ -150,82 +150,35 @@ class Newsletter(models.Model):
     def __str__(self):
         return f"Newsletter {self.subject}"
 
-    # def send_newsletter(self):
-    #     subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
-    #     # Extract the email addresses correctly by accessing the related User object
-    #     recipient_list = [sub.user.email for sub in subscribed_users if sub.user.email]
-    #     management_link = "\n\nTo manage your subscription, visit https://nasaqlibrary.org/newsLetter"
-    #     full_message = f"{self.message}{management_link}"
-    #
-    #     # Send the email
-    #     send_mail(
-    #         subject=self.subject,
-    #         message=full_message,
-    #         from_email=None,  # Uses DEFAULT_FROM_EMAIL from settings
-    #         recipient_list=recipient_list,
-    #         fail_silently=True,
-    #     )
-    #
-    #     # Update the sent_at time
-    #     self.save()
-    # def send_newsletter(self):
-    #     subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
-    #     recipient_list = [sub.user.email for sub in subscribed_users if sub.user.email]
-    #     management_link = "\n\nTo manage your subscription, visit https://nasaqlibrary.org/newsLetter"
-    #     full_message = f"{self.message}{management_link}"
-    #
-    #     # Create an HTML content that mimics the email
-    #     html_content = f"<html><body><p>{full_message}</p>"
-    #     if self.image:
-    #         image_url = os.path.join(settings.MEDIA_URL, self.image.name)
-    #         html_content += f'<img src="{image_url}" alt="Newsletter Image"/>'
-    #     html_content += "</body></html>"
-    #
-    #     # Save to a local HTML file for review
-    #     filename = f"newsletter_{self.id}.html"
-    #     with open(os.path.join(settings.MEDIA_ROOT, filename), 'w') as file:
-    #         file.write(html_content)
-    #     print(f"Saved newsletter as {filename}")
-    #
-    #     # Optionally, here's how you'd send it as an email:
-    #     # email = EmailMessage(
-    #     #     subject=self.subject,
-    #     #     body=html_content,
-    #     #     from_email=settings.DEFAULT_FROM_EMAIL,
-    #     #     to=recipient_list
-    #     # )
-    #     # email.content_subtype = 'html'  # if you want to send HTML email
-    #     # if self.image:
-    #     #     email.attach_file(self.image.path)
-    #     # email.send(fail_silently=True)
-    #
-    #     # Update the sent_at time
-    #     self.save()
+    def send_newsletter(self):
+        subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
+        recipient_list = [sub.user.email for sub in subscribed_users if sub.user.email]
+        management_link = "\n\nTo manage your subscription, visit https://nasaqlibrary.org/newsLetter"
+        full_message = f"{self.message}{management_link}"
 
-    # def send_newsletter(self):
-    #     subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
-    #     recipient_list = [sub.user.email for sub in subscribed_users if sub.user.email]
-    #     management_link = "\n\nTo manage your subscription, visit https://nasaqlibrary.org/newsLetter"
-    #     full_message = f"{self.message}{management_link}"
-    #
-    #     html_content = f"<html><body><p>{full_message}</p>"
-    #     if self.image:
-    #         image_base64 = get_image_base64(self.image.path)
-    #         image_mime = 'image/jpeg'  # Change this based on your image's MIME type
-    #         html_content += f'<img src="data:{image_mime};base64,{image_base64}" alt="Newsletter Image"/>'
-    #     html_content += "</body></html>"
-    #
-    #     email = EmailMessage(
-    #         subject=self.subject,
-    #         body=html_content,
-    #         from_email=settings.DEFAULT_FROM_EMAIL,
-    #         to=recipient_list
-    #     )
-    #     email.content_subtype = 'html'  # Ensure the email is sent as HTML
-    #     email.send(fail_silently=True)
-    #
-    #     # Update the sent_at time
-    #     self.save()
+        html_content = f"<html><body><p>{full_message}</p>"
+
+        if self.image:
+            image_data = open(self.image.path, "rb").read()
+            msg_img = MIMEImage(image_data)
+            msg_img.add_header('Content-ID', '<image1>')
+            html_content += '<img src="cid:image1" alt="Newsletter Image"/>'
+
+        html_content += "</body></html>"
+
+        msg = EmailMultiAlternatives(
+            self.subject,
+            html_content,
+            settings.DEFAULT_FROM_EMAIL,
+            recipient_list
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.mixed_subtype = 'related'
+        if self.image:
+            msg.attach(msg_img)
+
+        msg.send()
+
     def send_newsletter(self):
         subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
         recipient_list = ['nrvjj008@gmail.com']  # Testing by sending to a specific email
