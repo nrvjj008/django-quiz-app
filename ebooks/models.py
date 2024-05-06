@@ -19,6 +19,7 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 import base64
+from django.core.mail import EmailMessage
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -166,39 +167,39 @@ class Newsletter(models.Model):
     #
     #     # Update the sent_at time
     #     self.save()
-    def send_newsletter(self):
-        subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
-        recipient_list = [sub.user.email for sub in subscribed_users if sub.user.email]
-        management_link = "\n\nTo manage your subscription, visit https://nasaqlibrary.org/newsLetter"
-        full_message = f"{self.message}{management_link}"
-
-        # Create an HTML content that mimics the email
-        html_content = f"<html><body><p>{full_message}</p>"
-        if self.image:
-            image_url = os.path.join(settings.MEDIA_URL, self.image.name)
-            html_content += f'<img src="{image_url}" alt="Newsletter Image"/>'
-        html_content += "</body></html>"
-
-        # Save to a local HTML file for review
-        filename = f"newsletter_{self.id}.html"
-        with open(os.path.join(settings.MEDIA_ROOT, filename), 'w') as file:
-            file.write(html_content)
-        print(f"Saved newsletter as {filename}")
-
-        # Optionally, here's how you'd send it as an email:
-        # email = EmailMessage(
-        #     subject=self.subject,
-        #     body=html_content,
-        #     from_email=settings.DEFAULT_FROM_EMAIL,
-        #     to=recipient_list
-        # )
-        # email.content_subtype = 'html'  # if you want to send HTML email
-        # if self.image:
-        #     email.attach_file(self.image.path)
-        # email.send(fail_silently=True)
-
-        # Update the sent_at time
-        self.save()
+    # def send_newsletter(self):
+    #     subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
+    #     recipient_list = [sub.user.email for sub in subscribed_users if sub.user.email]
+    #     management_link = "\n\nTo manage your subscription, visit https://nasaqlibrary.org/newsLetter"
+    #     full_message = f"{self.message}{management_link}"
+    #
+    #     # Create an HTML content that mimics the email
+    #     html_content = f"<html><body><p>{full_message}</p>"
+    #     if self.image:
+    #         image_url = os.path.join(settings.MEDIA_URL, self.image.name)
+    #         html_content += f'<img src="{image_url}" alt="Newsletter Image"/>'
+    #     html_content += "</body></html>"
+    #
+    #     # Save to a local HTML file for review
+    #     filename = f"newsletter_{self.id}.html"
+    #     with open(os.path.join(settings.MEDIA_ROOT, filename), 'w') as file:
+    #         file.write(html_content)
+    #     print(f"Saved newsletter as {filename}")
+    #
+    #     # Optionally, here's how you'd send it as an email:
+    #     # email = EmailMessage(
+    #     #     subject=self.subject,
+    #     #     body=html_content,
+    #     #     from_email=settings.DEFAULT_FROM_EMAIL,
+    #     #     to=recipient_list
+    #     # )
+    #     # email.content_subtype = 'html'  # if you want to send HTML email
+    #     # if self.image:
+    #     #     email.attach_file(self.image.path)
+    #     # email.send(fail_silently=True)
+    #
+    #     # Update the sent_at time
+    #     self.save()
 
     def send_newsletter(self):
         subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
