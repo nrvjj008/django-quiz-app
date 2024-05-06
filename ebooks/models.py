@@ -20,7 +20,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 import base64
 from django.core.mail import EmailMessage
-
+from django.core.mail import EmailMultiAlternatives
+from email.mime.image import MIMEImage
 class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
@@ -201,30 +202,58 @@ class Newsletter(models.Model):
     #     # Update the sent_at time
     #     self.save()
 
+    # def send_newsletter(self):
+    #     subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
+    #     recipient_list = [sub.user.email for sub in subscribed_users if sub.user.email]
+    #     management_link = "\n\nTo manage your subscription, visit https://nasaqlibrary.org/newsLetter"
+    #     full_message = f"{self.message}{management_link}"
+    #
+    #     html_content = f"<html><body><p>{full_message}</p>"
+    #     if self.image:
+    #         image_base64 = get_image_base64(self.image.path)
+    #         image_mime = 'image/jpeg'  # Change this based on your image's MIME type
+    #         html_content += f'<img src="data:{image_mime};base64,{image_base64}" alt="Newsletter Image"/>'
+    #     html_content += "</body></html>"
+    #
+    #     email = EmailMessage(
+    #         subject=self.subject,
+    #         body=html_content,
+    #         from_email=settings.DEFAULT_FROM_EMAIL,
+    #         to=recipient_list
+    #     )
+    #     email.content_subtype = 'html'  # Ensure the email is sent as HTML
+    #     email.send(fail_silently=True)
+    #
+    #     # Update the sent_at time
+    #     self.save()
     def send_newsletter(self):
         subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
-        recipient_list = [sub.user.email for sub in subscribed_users if sub.user.email]
+        recipient_list = ['nrvjj008@gmail.com']  # Testing by sending to a specific email
         management_link = "\n\nTo manage your subscription, visit https://nasaqlibrary.org/newsLetter"
         full_message = f"{self.message}{management_link}"
 
         html_content = f"<html><body><p>{full_message}</p>"
+
         if self.image:
-            image_base64 = get_image_base64(self.image.path)
-            image_mime = 'image/jpeg'  # Change this based on your image's MIME type
-            html_content += f'<img src="data:{image_mime};base64,{image_base64}" alt="Newsletter Image"/>'
+            image_data = open(self.image.path, "rb").read()
+            msg_img = MIMEImage(image_data)
+            msg_img.add_header('Content-ID', '<image1>')
+            html_content += '<img src="cid:image1" alt="Newsletter Image"/>'
+
         html_content += "</body></html>"
 
-        email = EmailMessage(
-            subject=self.subject,
-            body=html_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=recipient_list
+        msg = EmailMultiAlternatives(
+            self.subject,
+            html_content,
+            settings.DEFAULT_FROM_EMAIL,
+            recipient_list
         )
-        email.content_subtype = 'html'  # Ensure the email is sent as HTML
-        email.send(fail_silently=True)
+        msg.attach_alternative(html_content, "text/html")
+        msg.mixed_subtype = 'related'
+        if self.image:
+            msg.attach(msg_img)
 
-        # Update the sent_at time
-        self.save()
+        msg.send()
 class Review(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
