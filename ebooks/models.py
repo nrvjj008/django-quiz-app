@@ -179,34 +179,7 @@ class Newsletter(models.Model):
 
         msg.send()
 
-    def send_newsletter(self):
-        subscribed_users = NewsletterSubscription.objects.filter(subscribed=True)
-        recipient_list = ['nrvjj008@gmail.com']  # Testing by sending to a specific email
-        management_link = "\n\nTo manage your subscription, visit https://nasaqlibrary.org/newsLetter"
-        full_message = f"{self.message}{management_link}"
 
-        html_content = f"<html><body><p>{full_message}</p>"
-
-        if self.image:
-            image_data = open(self.image.path, "rb").read()
-            msg_img = MIMEImage(image_data)
-            msg_img.add_header('Content-ID', '<image1>')
-            html_content += '<img src="cid:image1" alt="Newsletter Image"/>'
-
-        html_content += "</body></html>"
-
-        msg = EmailMultiAlternatives(
-            self.subject,
-            html_content,
-            settings.DEFAULT_FROM_EMAIL,
-            recipient_list
-        )
-        msg.attach_alternative(html_content, "text/html")
-        msg.mixed_subtype = 'related'
-        if self.image:
-            msg.attach(msg_img)
-
-        msg.send()
 class Review(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
