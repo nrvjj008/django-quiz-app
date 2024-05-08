@@ -22,6 +22,8 @@ import base64
 from django.core.mail import EmailMessage
 from django.core.mail import EmailMultiAlternatives
 from email.mime.image import MIMEImage
+
+
 class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
@@ -35,17 +37,23 @@ class Language(models.Model):
 
     def __str__(self):
         return self.name
+
+
 def get_image_base64(image_path):
     with open(image_path, 'rb') as image_file:
         encoded_string = base64.b64encode(image_file.read())
     return encoded_string.decode('utf-8')
+
+
 def get_cover_image_path(instance, filename):
     """Determine the path for the uploaded cover image."""
     return os.path.join('book_covers', str(instance.pk), filename)
 
+
 def get_file_path(instance, filename):
     """Determine the path for the uploaded ebook."""
     return os.path.join('ebooks', str(instance.pk), filename)
+
 
 def convert_single_page_to_image(book, page_num, pdf_data):
     """Converts a single page of the book's PDF to an image."""
@@ -133,6 +141,7 @@ class UserBookProgress(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     last_read_page = models.PositiveIntegerField(default=1)
 
+
 class NewsletterSubscription(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     subscribed = models.BooleanField(default=True)
@@ -170,7 +179,8 @@ class Newsletter(models.Model):
             self.subject,
             html_content,
             settings.DEFAULT_FROM_EMAIL,
-            recipient_list
+            [],  # Empty TO field
+            bcc=recipient_list  # BCC field
         )
         msg.attach_alternative(html_content, "text/html")
         msg.mixed_subtype = 'related'
@@ -219,7 +229,6 @@ class UserReason(models.Model):
 
     def __str__(self):
         return self.user.username
-
 
 
 class PasswordResetCode(models.Model):
